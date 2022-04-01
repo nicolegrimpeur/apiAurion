@@ -1,0 +1,21 @@
+{
+  "name": "apiaurion",
+  "version": "1.0.0",
+  "description": "Api permettant de récupérer et de convertir le planning Aurion au format ICS pour être ajouté à un calendrier personnel",
+  "main": "index.js",
+  "scripts": {
+    "test": "node index.js"
+  },
+  "keywords": [
+    "Aurion",
+    "ISEN",
+    "Plannings"
+  ],
+  "author": "Nicolas Barrat, ISEN Lille CIR3",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.17.3",
+    "fs": "^0.0.1-security",
+    "puppeteer": "^13.5.2"
+  }
+}
