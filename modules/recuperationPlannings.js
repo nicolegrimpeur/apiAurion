@@ -8,8 +8,10 @@ const fs = require('fs');
  * @param res       Variable de réponse express
  */
 exports.recupPlanning = async function (username, password, res) {
-    const nombreDeSemaineARecuperer = 3;        // nombre de semaines pour lesquelles on souhaite récupérer le planning
-    const browser = await puppeteer.launch();   // lancement du navigateur Headless
+    const nombreDeSemaineARecuperer = 12;        // nombre de semaines pour lesquelles on souhaite récupérer le planning
+    const browser = await puppeteer.launch({
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    });   // lancement du navigateur Headless
     const page = await browser.newPage();       // création d'un nouvel onglet
     await page.setViewport({                    // passage de la page en 1080p
         width: 1920,

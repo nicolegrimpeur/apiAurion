@@ -22,6 +22,14 @@ En cas de soucis tout de même, une sécurité est présente dans le script, vou
 
 Bien évidemment ! Il se peut que Aurion soit mis à jour cassant les recherches de composants utilisés, n'hésitez pas à proposer vos corrections dans ce cas la 👍
 
+### Quels sont les dépendances nécessaires ?
+
+Le projet étant basé sur Javascript, vous aurez besoin de node pour exécuter le script. 
+
+Le projet [Puppeteer](https://github.com/puppeteer/puppeteer) étant ici utilisé, un navigateur utilisant Chromium sera installé (la plupart des navigateurs le sont déjà pas de soucis de ce côté la). En revanche, cela peut poser problème sur serveur, avec une erreur lors de l'installation de Puppeteer. Il vous suffit d'installer manuellement Chromium pour corriger le problème (sudo apt install chromium-browser).
+
+Sinon, les librairies utilisées sont fs pour la création du fichier de sortie avant téléchargement et express pour la gestion du serveur
+
 ## Crédits
 
 Réalisé par Nicolas Barrat, étudiant à l'ISEN Lille, France
