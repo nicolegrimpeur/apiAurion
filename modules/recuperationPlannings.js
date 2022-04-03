@@ -8,11 +8,14 @@ const fs = require('fs');
  * @param res       Variable de réponse express
  */
 exports.recupPlanning = async function (username, password, res) {
-    const nombreDeSemaineARecuperer = 12;        // nombre de semaines pour lesquelles on souhaite récupérer le planning
+    const nombreDeSemaineARecuperer = 4;        // nombre de semaines pour lesquelles on souhaite récupérer le planning
     const browser = await puppeteer.launch({
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
     });   // lancement du navigateur Headless
     const page = await browser.newPage();       // création d'un nouvel onglet
+    await page.setExtraHTTPHeaders({            // correction de la langue des requètes
+        'Accept-Language': 'fr'                 // (les navigateurs linux serveurs sont par défaut configurés en anglais,
+    });                                         // or la version anglaise d'Aurion n'affiche pas les numéros de salle 🙃)
     await page.setViewport({                    // passage de la page en 1080p
         width: 1920,
         height: 1080,
@@ -87,7 +90,6 @@ exports.recupPlanning = async function (username, password, res) {
 
         // boucle sur chaque jour de la semaine
         for (let i = 1; i <= tabJour.length; i++) {
-            // console.log(jourEnCours);
             // jour parcouru au format Date
             jourEnCours = new Date(new Date().setTime(time.getTime() + (7 * semaine + i) * 86400000));
 
@@ -134,7 +136,8 @@ exports.recupPlanning = async function (username, password, res) {
                     jour: prefixDate,
                     description: isExam ?
                         htmlPlannings[indicePlanning].replaceAll('<br>', ' \\n ') :
-                        'Avec : ' + tabPlanningsJournee[tabPlanningsJournee.length - 1],
+                        ((tabPlanningsJournee[tabPlanningsJournee.length - 1] !== '') ?
+                            'Avec : ' + tabPlanningsJournee[tabPlanningsJournee.length - 1] : ''),
                     textIfExam: isExam ? '🎓 Examen - ' : ''
                 });
             }
