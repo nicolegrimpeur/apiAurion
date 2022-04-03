@@ -4,7 +4,7 @@
 
 L'objectif de cette API est de récupérer vos plannings afin d'en ressortir un fichier au format ICS.
 
-Ce format peut par exemple être utilisé afin d'automatiser votre calendrier avec Google Calendar par exemple (cf vidéo de démonstration ci-après).
+Ce format peut par exemple être utilisé afin d'automatiser votre calendrier, [lien vers un petit tuto](https://blog.share-d.com/application/les-tutos/tuto-comment-synchroniser-agenda/) pour vous montrer comment faire
 
 Vous avez à disposition dans ce repository les scripts nécessaires à la création d'un serveur en ligne, ou pour ajout sur votre serveur existant.
 
@@ -25,7 +25,6 @@ Bien évidemment ! Il se peut que Aurion soit mis à jour cassant les recherches
 ## Crédits
 
 Réalisé par Nicolas Barrat, étudiant à l'ISEN Lille, France
-
 
 
 Petit lien pour me supporter dans ce type de projet, merci d'avance à ceux qui prennent le temps de m'acheter un café ! 😇

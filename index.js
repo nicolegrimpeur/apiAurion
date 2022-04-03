@@ -15,12 +15,12 @@ const recuperationPlannings = require('./modules/recuperationPlannings');
  */
 appHTTP.get('/aurion', function (req, res) {
     // lance la récupération et le téléchargement du planning
-    recuperationPlannings.recupPlanning(req.query.user, req.query.mdp, res)
+    // ici on n'utilise pas req.query.password étant donné que req.query ne prend pas en compte les caractères spéciaux
+    recuperationPlannings.recupPlanning(req.query.user, req.originalUrl.slice(req.originalUrl.indexOf('mdp=') + 4), res)
         .then()
         .catch(err => {
-            console.log(err);
-            res.status(504);
-        })
+            res.status(504).send('Une erreur est survenu');
+        });
 });
 
 serverHTTP.listen(portHTTPS);

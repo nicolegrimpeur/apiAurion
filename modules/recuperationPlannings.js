@@ -8,7 +8,7 @@ const fs = require('fs');
  * @param res       Variable de réponse express
  */
 exports.recupPlanning = async function (username, password, res) {
-    const nombreDeSemaineARecuperer = 2;        // nombre de semaines pour lesquelles on souhaite récupérer le planning
+    const nombreDeSemaineARecuperer = 3;        // nombre de semaines pour lesquelles on souhaite récupérer le planning
     const browser = await puppeteer.launch();   // lancement du navigateur Headless
     const page = await browser.newPage();       // création d'un nouvel onglet
     await page.setViewport({                    // passage de la page en 1080p
@@ -24,6 +24,11 @@ exports.recupPlanning = async function (username, password, res) {
     await page.keyboard.press('Enter');
 
     await page.waitForNavigation();             // on attend le changement de page
+
+    if (page.url() === 'https://aurion.junia.com/login') {
+        res.status(401).send('Mauvais mot de passe');
+        return;
+    }
 
     // bouton Mon Planning, premier élément possédant la dépendance li>a>span
     // permet de se déplacer sur la page des plannings
@@ -47,8 +52,10 @@ exports.recupPlanning = async function (username, password, res) {
     let mois;
     // stocke le jour au format ICS (AAAAMMJJ)
     let prefixDate;
-    // récupère les contenus de chaque événement du jour (format ...<br>...<br>...<br>...)
+    // récupère les contenus de chaque événement du jour (format "...<br>...<br>...<br>...")
     let htmlPlannings;
+    // permet de stocker le parent de htmlPlannings --> permet de tester si le créneau est un examen ou pas
+    let parentHtmlPlannings;
     // stocke dans un tableau les contenus séparés (format [..., ..., ..., ...])
     let tabPlanningsJournee;
     // stocke l'école où aura lieu le cours
@@ -57,6 +64,8 @@ exports.recupPlanning = async function (username, password, res) {
     let salle;
     // stocke les heures de départ du cours (format HH:MM)
     let tabHeures;
+    // teste si le créneau est un examen ou pas
+    let isExam;
     // bouton vers la prochaine semaine
     let btnNextSemaine;
 
@@ -76,6 +85,7 @@ exports.recupPlanning = async function (username, password, res) {
 
         // boucle sur chaque jour de la semaine
         for (let i = 1; i <= tabJour.length; i++) {
+            // console.log(jourEnCours);
             // jour parcouru au format Date
             jourEnCours = new Date(new Date().setTime(time.getTime() + (7 * semaine + i) * 86400000));
 
@@ -87,31 +97,47 @@ exports.recupPlanning = async function (username, password, res) {
 
             // on récupère tous les événements de la journée
             htmlPlannings = await tabJour[i - 1].$$eval('.fc-title', node => node.map(n => n.innerHTML));
+            parentHtmlPlannings = await tabJour[i - 1].$$('.fc-content');
 
             // parcours de chaque événement de la journée
-            for (let planning of htmlPlannings) {
+            for (let indicePlanning = 0; indicePlanning < htmlPlannings.length; indicePlanning++) {
                 // sépare le contenu obtenu et le transforme en tableau
-                tabPlanningsJournee = planning.split('<br>');
+                tabPlanningsJournee = htmlPlannings[indicePlanning].split('<br>');
 
-                // recherche dans la première ligne obtenue l'école (HEI, ISA, ou ISEN)
-                quelleEcole = await tabPlanningsJournee[0].match(/(ISEN)|(HEI)|(ISA)/g);
-                // recherche dans la première ligne la salle (format 000 ou A000)
-                salle = await tabPlanningsJournee[0].match(/[A-Z]?[0-9]{3}/g);
                 // recherche dans la troisième ligne les horaires de début et de fin (format HH:MM)
-                tabHeures = tabPlanningsJournee[2].match(/[0-9]{2}:[0-9]{2}/g);
+                tabHeures = htmlPlannings[indicePlanning].match(/[0-9]{2}:[0-9]{2}/g);
+
+                isExam = (await parentHtmlPlannings[indicePlanning].$$('i')).length !== 0;
+
+                if (tabPlanningsJournee.length === 4) {
+                    // recherche dans la première ligne obtenue l'école (HEI, ISA, ou ISEN)
+                    quelleEcole = await tabPlanningsJournee[0].match(/(ISEN)|(HEI)|(ISA)/g);
+                    // recherche dans la première ligne la salle (format 000 ou A000)
+                    salle = await tabPlanningsJournee[0].match(/[A-Z]?[0-9]{3}/g);
+                } else {
+                    quelleEcole = [""];
+                    salle = [""];
+                }
 
                 // ajout de l'évènement formaté
                 formatPlannings.push({
                     ecole: (quelleEcole !== null) ? quelleEcole[quelleEcole.length - 1] : 'Teams',
                     salle: (salle !== null) ? salle[salle.length - 1] : '',
-                    nomDuCours: (tabPlanningsJournee[1] !== '') ? tabPlanningsJournee[1] : tabPlanningsJournee[0].slice(0, tabPlanningsJournee[0].indexOf('-')),
-                    prof: tabPlanningsJournee[3],
+                    nomDuCours: (tabPlanningsJournee[tabPlanningsJournee.length - 3] !== '') ?
+                        tabPlanningsJournee[tabPlanningsJournee.length - 3] :
+                        tabPlanningsJournee[tabPlanningsJournee.length - 3].slice(0, tabPlanningsJournee[0].indexOf('-')),
+                    prof: tabPlanningsJournee[tabPlanningsJournee.length - 1],
                     heureDebut: tabHeures[0].replace(':', '') + '00',
                     heureFin: tabHeures[1].replace(':', '') + '00',
-                    jour: prefixDate
+                    jour: prefixDate,
+                    description: isExam ?
+                        htmlPlannings[indicePlanning].replaceAll('<br>', ' \\n ') :
+                        'Avec : ' + tabPlanningsJournee[tabPlanningsJournee.length - 1],
+                    textIfExam: isExam ? '🎓 Examen - ' : ''
                 });
             }
         }
+
 
         // récupère le bouton vers la semaine suivante
         btnNextSemaine = await page.$('button>span.ui-icon-circle-triangle-e');
@@ -121,6 +147,7 @@ exports.recupPlanning = async function (username, password, res) {
     // on ferme le navigateur
     await browser.close();
 
+    ///////// on commence la création du fichier ICS à partir des données récupérées
     // contenu du fichier ICS
     let icsMSG =
         "BEGIN:VCALENDAR\n" +
@@ -133,20 +160,17 @@ exports.recupPlanning = async function (username, password, res) {
     for (let event of formatPlannings) {
         icsMSG +=
             "BEGIN:VEVENT\n" +
-            "DTSTART:" +                            // début de l'événement
+            "DTSTART;TZID=Europe/Paris:" +                            // début de l'événement
             event.jour + "T" + event.heureDebut +
             "\n" +
-            "DTEND:" +                              // fin de l'événement
+            "DTEND;TZID=Europe/Paris:" +                              // fin de l'événement
             event.jour + "T" + event.heureFin +
             "\n" +
             "SUMMARY:" +                            // titre
-            event.ecole + ' ' + event.salle + ' - ' + event.nomDuCours +
+            event.textIfExam + event.ecole + ' ' + event.salle + ' - ' + event.nomDuCours +
             "\n" +
             "DESCRIPTION:" +                        // description
-            "" +
-            "\n" +
-            "ORGANIZER;CN=" +                       // organisateur, ici utilisé pour le professeur
-            event.prof +
+            event.description +
             "\n" +
             "END:VEVENT\n";
     }
@@ -159,8 +183,8 @@ exports.recupPlanning = async function (username, password, res) {
         // on enregistre le contenu ICS obtenu dans un fichier data.ics
         await fs.writeFileSync('./aurion.ics', icsMSG);
 
-        // on renvoi le fichier à l'utilisateur pour téléchargement
-        await res.status(200).download('./data.ics');
+        // on renvoie le fichier à l'utilisateur pour téléchargement
+        await res.status(200).download('./aurion.ics');
 
         // on attend la fin du téléchargement
         await new Promise(resolve => setTimeout(resolve, 500));
