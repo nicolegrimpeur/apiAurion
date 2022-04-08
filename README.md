@@ -22,7 +22,7 @@ N'hésitez pas à fork le projet pour faire vos propres modifications et ainsi p
 
 ## Exemple de résultat avec Google Calendar <a id="Exemple"></a>
 
-![Exemple de résultat avec Google Calendar](./Résultat avec Google Calendar.png)
+![Exemple de résultat avec Google Calendar](https://github.com/nicolegrimpeur/apiAurion/blob/master/R%C3%A9sultat%20avec%20Google%20Calendar.png?raw=true)
 
 ## FAQ <a id="FAQ"></a>
 
