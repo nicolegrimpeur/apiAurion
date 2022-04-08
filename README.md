@@ -1,6 +1,13 @@
 # Api Aurion
 
-## Description
+## Sommaire
+- [Description](#Description)
+- [Exemple de résultat avec Google Calendar](#Exemple)
+- [FAQ](#FAQ)
+- [Crédits](#Credits)
+- [Disclaimer](#Disclaimer)
+
+## Description <a id="Description"></a>
 
 L'objectif de cette API est de récupérer vos plannings afin d'en ressortir un fichier au format ICS.
 
@@ -13,11 +20,11 @@ sur votre serveur existant.
 
 N'hésitez pas à fork le projet pour faire vos propres modifications et ainsi personnaliser ce script.
 
-## Exemple de résultat avec Google Calendar
+## Exemple de résultat avec Google Calendar <a id="Exemple"></a>
 
-![Exemple de résultat avec Google Calendar](Résultat avec Google Calendar.png)
+![Exemple de résultat avec Google Calendar](./Résultat avec Google Calendar.png)
 
-## FAQ
+## FAQ <a id="FAQ"></a>
 
 ### Que faire si mon mot de passe contient des caractères spéciaux ?
 
@@ -45,7 +52,7 @@ corriger le problème (sudo apt install chromium-browser).
 Sinon, les librairies utilisées sont fs pour la création du fichier de sortie avant téléchargement et express pour la
 gestion du serveur
 
-## Crédits
+## Crédits <a id="Credits"></a>
 
 Réalisé par Nicolas Barrat, étudiant à l'ISEN Lille, France
 
@@ -53,3 +60,7 @@ Petit lien pour me supporter dans ce type de projet, merci d'avance à ceux qui 
 😇
 
 <a href="https://www.buymeacoffee.com/nicolegrimpeur" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-blue.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
+
+## Disclaimer <a id="Disclaimer"></a>
+
+Un script comme celui-ci ne remplace pas votre emploi du temps Aurion et n'est en rien officiel, à prendre avec des pincettes donc
