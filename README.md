@@ -49,8 +49,10 @@ installé (la plupart des navigateurs le sont déjà pas de soucis de ce côté 
 sur serveur, avec une erreur lors de l'installation de Puppeteer. Il vous suffit d'installer manuellement Chromium pour
 corriger le problème (sudo apt install chromium-browser).
 
+Le projet [Puppeteer Cluster](https://github.com/thomasdondorf/puppeteer-cluster) est aussi utilisé afin de gérer plusieurs instances du script en même temps. De plus, en cas d'erreur de l'une, cela permet de ne pas compromettre les autres instances.
+
 Sinon, les librairies utilisées sont fs pour la création du fichier de sortie avant téléchargement et express pour la
-gestion du serveur
+gestion du serveur.
 
 ## Crédits <a id="Credits"></a>
 

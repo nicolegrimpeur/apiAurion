@@ -1,18 +1,20 @@
-const puppeteer = require('puppeteer');
 const fs = require('fs');
 
 /**
  * Script de récupération des plannings Aurion à l'aide du navigateur Headless Puppeteer
- * @param username  Mail de l'utilisateur qui souhaite se connecter
- * @param password  Mot de passe associé
- * @param res       Variable de réponse express
+ * @param param page contient la page allouée par le cluster pour le processus et data contient :
+ *          <br>
+ *          - username : le mail de l'utilisateur qui souhaite se connecter <br>
+ *          - password : le mot de passe associé <br>
+ *          - res : la variable de réponse express <br>
  */
-exports.recupPlanning = async function (username, password, res) {
-    const nombreDeSemaineARecuperer = 12;        // nombre de semaines pour lesquelles on souhaite récupérer le planning
-    const browser = await puppeteer.launch({
-        args: ['--no-sandbox', '--disable-setuid-sandbox'],
-    });   // lancement du navigateur Headless
-    const page = await browser.newPage();       // création d'un nouvel onglet
+exports.recupPlanning = async function ({page, data}) {
+    const username = data.username;
+    const password = data.password;
+    const res = data.res;
+
+    const nombreDeSemaineARecuperer = 4;        // nombre de semaines pour lesquelles on souhaite récupérer le planning
+
     await page.setExtraHTTPHeaders({            // correction de la langue des requètes
         'Accept-Language': 'fr'                 // (les navigateurs linux serveurs sont par défaut configurés en anglais,
     });                                         // or la version anglaise d'Aurion n'affiche pas les numéros de salle 🙃)
@@ -147,7 +149,7 @@ exports.recupPlanning = async function (username, password, res) {
     }
 
     // on ferme le navigateur
-    await browser.close();
+    // await browser.close();
 
     ///////// on commence la création du fichier ICS à partir des données récupérées
     // contenu du fichier ICS
