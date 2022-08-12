@@ -13,7 +13,7 @@ exports.recupPlanning = async function ({page, data}) {
     const password = data.password;
     const res = data.res;
 
-    const nombreDeSemaineARecuperer = 4;        // nombre de semaines pour lesquelles on souhaite récupérer le planning
+    const nombreDeSemaineARecuperer = 7;        // nombre de semaines pour lesquelles on souhaite récupérer le planning
 
     await page.setExtraHTTPHeaders({            // correction de la langue des requètes
         'Accept-Language': 'fr'                 // (les navigateurs linux serveurs sont par défaut configurés en anglais,
@@ -39,7 +39,11 @@ exports.recupPlanning = async function ({page, data}) {
 
     // bouton Mon Planning, premier élément possédant la dépendance li>a>span
     // permet de se déplacer sur la page des plannings
-    const button = await page.$('li>a>span');
+    const spans = await page.$$('li>a>span');
+    let button;
+    for (let span of spans) {
+        if (await page.evaluate(el => el.textContent, span) === "Mon Planning") button = span;
+    }
     await button.click();
 
     // on attend le changement de page
