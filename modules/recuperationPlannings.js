@@ -1,4 +1,4 @@
-const fs = require('fs');
+import fs from "fs";
 
 /**
  * Script de récupération des plannings Aurion à l'aide du navigateur Headless Puppeteer
@@ -8,7 +8,7 @@ const fs = require('fs');
  *          - password : le mot de passe associé <br>
  *          - res : la variable de réponse express <br>
  */
-exports.recupPlanning = async function ({page, data}) {
+export async function recupPlanning ({page, data}) {
     const username = data.username;
     const password = data.password;
     const res = data.res;

@@ -22,4 +22,4 @@ class StockageDonneesEventModel {
     textIfExam;
 }
 
-module.exports = StockageDonneesEventModel;
+export default StockageDonneesEventModel;

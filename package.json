@@ -13,6 +13,7 @@
   ],
   "author": "Nicolas Barrat, ISEN Lille CIR3",
   "license": "MIT",
+  "type": "module",
   "dependencies": {
     "express": "^4.17.3",
     "fs": "^0.0.1-security",

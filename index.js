@@ -2,14 +2,15 @@
 const portHTTPS = 1080;
 
 // instanciation du serveur express
-const express = require('express');
+import express from 'express';
 const appHTTP = express();
-const serverHTTP = require('http').createServer(appHTTP);
+import http from "http";
+const serverHTTP = http.createServer(appHTTP);
 
 // récupération du module pour récupérer les plannings
-const recuperationPlannings = require('./modules/recuperationPlannings');
+import {recupPlanning} from "./modules/recuperationPlannings.js";
 
-const {Cluster} = require('puppeteer-cluster');
+import {Cluster} from "puppeteer-cluster";
 
 // utilisation de cluster afin de gérer plusieurs onglets indépendamment
 const cluster = Cluster.launch({
@@ -33,7 +34,7 @@ appHTTP.get('/aurion', async function (req, res) {
         // ici on n'utilise pas req.query.password étant donné que req.query ne prend pas en compte les caractères spéciaux
         password: req.originalUrl.slice(req.originalUrl.indexOf('mdp=') + 4),
         res
-    }, recuperationPlannings.recupPlanning);
+    }, recupPlanning);
 });
 
 serverHTTP.listen(portHTTPS);
