@@ -1,4 +1,5 @@
 import fs from "fs";
+// import StockageDonneesEventModel from "./stockageDonneesEventModel.js";
 
 /**
  * Script de récupération des plannings Aurion à l'aide du navigateur Headless Puppeteer
@@ -13,9 +14,9 @@ export async function recupPlanning ({page, data}) {
     const password = data.password;
     const res = data.res;
 
-    const nombreDeSemaineARecuperer = 7;        // nombre de semaines pour lesquelles on souhaite récupérer le planning
+    const nombreDeSemaineARecuperer = 8;        // nombre de semaines pour lesquelles on souhaite récupérer le planning
 
-    await page.setExtraHTTPHeaders({            // correction de la langue des requètes
+    await page.setExtraHTTPHeaders({            // correction de la langue des requêtes
         'Accept-Language': 'fr'                 // (les navigateurs linux serveurs sont par défaut configurés en anglais,
     });                                         // or la version anglaise d'Aurion n'affiche pas les numéros de salle 🙃)
     await page.setViewport({                    // passage de la page en 1080p
@@ -113,13 +114,13 @@ export async function recupPlanning ({page, data}) {
             for (let indicePlanning = 0; indicePlanning < htmlPlannings.length; indicePlanning++) {
                 // sépare le contenu obtenu et le transforme en tableau
                 tabPlanningsJournee = htmlPlannings[indicePlanning].split('<br>');
-
+                console.log(tabPlanningsJournee);
                 // recherche dans la troisième ligne les horaires de début et de fin (format HH:MM)
                 tabHeures = htmlPlannings[indicePlanning].match(/[0-9]{2}:[0-9]{2}/g);
 
                 isExam = (await parentHtmlPlannings[indicePlanning].$$('i')).length !== 0;
 
-                if (tabPlanningsJournee.length === 4) {
+                if (tabPlanningsJournee.length === 6) {
                     // recherche dans la première ligne obtenue l'école (HEI, ISA, ou ISEN)
                     quelleEcole = await tabPlanningsJournee[0].match(/(ISEN)|(HEI)|(ISA)/g);
                     // recherche dans la première ligne la salle (format 000 ou A000)
@@ -131,16 +132,16 @@ export async function recupPlanning ({page, data}) {
 
                 // ajout de l'évènement formaté
                 formatPlannings.push({
-                    ecole: (quelleEcole !== null) ? quelleEcole[quelleEcole.length - 1] : 'Teams',
+                    ecole: (quelleEcole !== null) ? quelleEcole[quelleEcole.length - 1] : '🤷',
                     salle: (salle !== null) ? salle[salle.length - 1] : '',
-                    nomDuCours: (tabPlanningsJournee[tabPlanningsJournee.length - 3] !== '') ?
-                        tabPlanningsJournee[tabPlanningsJournee.length - 3] :
-                        tabPlanningsJournee[tabPlanningsJournee.length - 3].slice(0, tabPlanningsJournee[0].indexOf('-')),
+                    nomDuCours: (tabPlanningsJournee[tabPlanningsJournee.length - 4] !== '') ?
+                        tabPlanningsJournee[tabPlanningsJournee.length - 4] :
+                        tabPlanningsJournee[tabPlanningsJournee.length - 4].slice(0, tabPlanningsJournee[0].indexOf('-')),
                     prof: tabPlanningsJournee[tabPlanningsJournee.length - 1],
                     heureDebut: tabHeures[0].replace(':', '') + '00',
                     heureFin: tabHeures[1].replace(':', '') + '00',
                     jour: prefixDate,
-                    description: htmlPlannings[indicePlanning].replaceAll('<br>', ' \\n '),
+                    description: htmlPlannings[indicePlanning].replaceAll('<br>', ' \\n ').replaceAll(/(\s)+/g, ' '),
                     textIfExam: isExam ? '🎓 Examen - ' : ''
                 });
             }
