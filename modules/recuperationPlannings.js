@@ -14,7 +14,7 @@ export async function recupPlanning ({page, data}) {
     const password = data.password;
     const res = data.res;
 
-    const nombreDeSemaineARecuperer = 8;        // nombre de semaines pour lesquelles on souhaite récupérer le planning
+    const nombreDeSemaineARecuperer = 2;        // nombre de semaines pour lesquelles on souhaite récupérer le planning
 
     await page.setExtraHTTPHeaders({            // correction de la langue des requêtes
         'Accept-Language': 'fr'                 // (les navigateurs linux serveurs sont par défaut configurés en anglais,
@@ -114,7 +114,7 @@ export async function recupPlanning ({page, data}) {
             for (let indicePlanning = 0; indicePlanning < htmlPlannings.length; indicePlanning++) {
                 // sépare le contenu obtenu et le transforme en tableau
                 tabPlanningsJournee = htmlPlannings[indicePlanning].split('<br>');
-                console.log(tabPlanningsJournee);
+                // console.log(tabPlanningsJournee);
                 // recherche dans la troisième ligne les horaires de début et de fin (format HH:MM)
                 tabHeures = htmlPlannings[indicePlanning].match(/[0-9]{2}:[0-9]{2}/g);
 
@@ -150,6 +150,7 @@ export async function recupPlanning ({page, data}) {
 
         // récupère le bouton vers la semaine suivante
         btnNextSemaine = await page.$('button>span.ui-icon-circle-triangle-e');
+        console.log('btnNextSemaine : ' + btnNextSemaine)
         await btnNextSemaine.click();
     }
 

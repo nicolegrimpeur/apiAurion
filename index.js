@@ -9,6 +9,7 @@ const serverHTTP = http.createServer(appHTTP);
 
 // récupération du module pour récupérer les plannings
 import {recupPlanning} from "./modules/recuperationPlannings.js";
+import {requetes} from "./modules/requetes.js";
 
 import {Cluster} from "puppeteer-cluster";
 
@@ -19,6 +20,8 @@ const cluster = Cluster.launch({
     maxConcurrency: 5,
     puppeteerOptions: {
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
+        // headless: false,
+        // slowMo: 100,
     }, // arguments puppeteer browser
     timeout: 90000,
 }); // lancement du navigateur Headless
@@ -35,6 +38,11 @@ appHTTP.get('/aurion', async function (req, res) {
         password: req.originalUrl.slice(req.originalUrl.indexOf('mdp=') + 4),
         res
     }, recupPlanning);
+});
+
+// http://localhost:1080/aurionV2?user=nicolas.barrat@student.junia.com&mdp=/ZTcI3IL
+appHTTP.get('/aurionV2', async (req, res) => {
+    await requetes(res, req.query.user, req.originalUrl.slice(req.originalUrl.indexOf('mdp=') + 4));
 });
 
 serverHTTP.listen(portHTTPS);
