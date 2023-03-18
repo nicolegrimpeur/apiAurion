@@ -16,11 +16,11 @@ import {Cluster} from "puppeteer-cluster";
 // utilisation de cluster afin de gérer plusieurs onglets indépendamment
 const cluster = Cluster.launch({
     // on utilise un onglet par browser, en cas de crash d'un, les autres processus ne sont pas affectés
-    concurrency: Cluster.CONCURRENCY_BROWSER,
+    concurrency: Cluster.CONCURRENCY_CONTEXT,
     maxConcurrency: 5,
     puppeteerOptions: {
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
-        // headless: false,
+        headless: false,
         // slowMo: 100,
     }, // arguments puppeteer browser
     timeout: 90000,
@@ -40,7 +40,6 @@ appHTTP.get('/aurion', async function (req, res) {
     }, recupPlanning);
 });
 
-// http://localhost:1080/aurionV2?user=nicolas.barrat@student.junia.com&mdp=/ZTcI3IL
 appHTTP.get('/aurionV2', async (req, res) => {
     await requetes(res, req.query.user, req.originalUrl.slice(req.originalUrl.indexOf('mdp=') + 4));
 });

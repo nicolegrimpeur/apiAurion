@@ -90,7 +90,7 @@ export async function recupPlanning ({page, data}) {
     // une boucle correspond à la récupération des données d'une semaine
     for (let semaine = 0; semaine < nombreDeSemaineARecuperer; semaine++) {
         // timer sur la page permettant d'attendre la fin de la récupération des données par Aurion
-        await new Promise(resolve => setTimeout(resolve, 5000));
+        await new Promise(resolve => setTimeout(resolve, 6000));
 
         // on récupère toutes les colonnes de journées
         tabJour = await page.$$('tr>td>div.fc-content-col');
@@ -150,7 +150,6 @@ export async function recupPlanning ({page, data}) {
 
         // récupère le bouton vers la semaine suivante
         btnNextSemaine = await page.$('button>span.ui-icon-circle-triangle-e');
-        console.log('btnNextSemaine : ' + btnNextSemaine)
         await btnNextSemaine.click();
     }
 
