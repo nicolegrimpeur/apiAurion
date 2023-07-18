@@ -2,7 +2,11 @@ import fetch from 'node-fetch';
 import {parse} from 'node-html-parser';
 import 'web-streams-polyfill';
 import {XMLHttpRequest} from 'xmlhttprequest';
-import axios from 'axios';
+import got from 'got';
+import stream from 'node:stream';
+import {promisify} from 'node:util';
+import fs from 'node:fs';
+import client from "./client.js";
 
 export async function requetes(res, username, password) {
     let jsessionid = await getCookiesLogin();
@@ -55,6 +59,23 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+function request(
+    url,
+    method = "GET",
+    headers = {},
+    body = {},
+    shouldParse = false
+) {
+    return client(url, {
+        method,
+        headers,
+        form: body,
+    }).then((response) => ({
+        response,
+        html: shouldParse ? parse(response.body) : null,
+    }));
+}
+
 async function getPlanning(jsessionid, viewState) {
     const nbSemaines = 8;
 
@@ -69,62 +90,164 @@ async function getPlanning(jsessionid, viewState) {
     const nombreJours = Math.floor((dimanchePrecedent - premierJanvier) / (24 * 60 * 60 * 1000));
     const nombreSemaines = Math.ceil((dimanchePrecedent.getDay() + 1 + nombreJours) / 7);
 
-    console.log(dimanchePrecedent.getTime());
+    const {response, html} = await request(
+        "faces/Planning.xhtml",
+        "POST",
+        {
+            Accept: "application/xml, text/xml, */*; q=0.01",
+            "Faces-Request": "partial/ajax",
+            "X-Requested-With": "XMLHttpRequest",
+            "Cookie": "JSESSIONID=" + jsessionid,
+        },
+        {
+            "javax.faces.partial.ajax": "true",
+            "javax.faces.source": "form:j_idt117",
+            "javax.faces.partial.execute": "form:j_idt117",
+            "javax.faces.partial.render": "form:j_idt117",
+            "form:j_idt117": "form:j_idt117",
+            "form:j_idt117_start": dimanchePrecedent.getTime(),
+            "form:j_idt117_end": dateFin.getTime(),
+            form: "form",
+            "form:largeurDivCenter": "",
+            "form:date_input": dimanchePrecedent.toLocaleDateString('fr-FR', options),
+            "form:week": nombreSemaines + '-' + dimanchePrecedent.getFullYear(),
+            "form:j_idt117_view": "agendaWeek",
+            "form:offsetFuseauNavigateur": "0",
+            "form:onglets_activeIndex": "0",
+            "form:onglets_scrollState": "0",
+            "form:j_idt237_focus": "",
+            "form:j_idt237_input": "46623",
+            "javax.faces.ViewState": viewState,
+        }
+    );
 
-    const response = await fetch('https://aurion.junia.com/faces/Planning.xhtml', {
-            method: 'POST',
-            body: 'javax.faces.partial.ajax=true' +
-                '&javax.faces.source=form:j_idt117' +
-                '&javax.faces.partial.execute=form:j_idt117' +
-                '&javax.faces.partial.render=form:j_idt117' +
-                '&form:j_idt117=form:j_idt117' +
-                '&form:j_idt117_start=' + dimanchePrecedent.getTime() +
-                '&form:j_idt117_end=' + dateFin.getTime() +
-                '&form=form' +
-                '&form:largeurDivCenter=' +
-                '&form:idInit=webscolaapp.Planning_31062438843074729' +
-                '&form:date_input=' + dimanchePrecedent.toLocaleDateString('fr-FR', options) +
-                '&form:week=' + nombreSemaines + '-' + dimanchePrecedent.getFullYear() +
-                '&form:j_idt117_view=agendaWeek' +
-                '&form:offsetFuseauNavigateur=-3600000' +
-                '&form:onglets_activeIndex=0&' +
-                'form:onglets_scrollState=0' +
-                '&form:j_idt237_focus=' +
-                '&form:j_idt237_input=46623' +
-                '&javax.faces.ViewState=' + viewState,
-            credentials: 'include',
-            headers: {
-                'Cookie': 'JSESSIONID=' + jsessionid,
-                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-                'Connection': 'close',
-                'Faces-Request': 'partial/ajax',
-                'X-Requested-With': 'XMLHttpRequest',
-                'Accept': 'application/xml, text/xml, */*; q=0.01',
-                // 'Accept': '*/*',
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101 Goanna/6.0 Firefox/102.0 Basilisk/20230126',
-                'Referer': 'https://aurion.junia.com/faces/Planning.xhtml',
-                'Origin': 'https://aurion.junia.com',
-                'Accept-Encoding': 'gzip, deflate',
-            }});
-    if (!response.ok) {
-        throw new Error(`Failed to fetch ${"https://aurion.junia.com/faces/Planning.xhtml"}: ${response.status} ${response.statusText}`);
-    }
+    // const parser = new DOMParser();
+    // const parsedBody = parser.parseFromString(response.body, "application/xml");
+    // if (!parsedBody["partial-response"]) {
+    //     throw new Error();
+    // }
+    // const {
+    //     changes: {update},
+    // } = parsedBody["partial-response"];
+    // const {
+    //     events,
+    // } = JSON.parse(update[1]);
+    // console.log(events);
 
-    const chunks = [];
-    let length = 0;
-    // console.log(response.body)
-    for await (const chunk of response.body) {
-        console.log(chunk)
-        chunks.push(chunk);
-        length += chunk.length;
-        await sleep(6000)
-    }
+    // const ongoingRequestPromise = await got.post('https://aurion.junia.com/faces/Planning.xhtml', {
+    //     headers: {
+    //         'Cookie': 'JSESSIONID=' + jsessionid,
+    //         'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+    //         'Connection': 'close',
+    //         'Faces-Request': 'partial/ajax',
+    //         'X-Requested-With': 'XMLHttpRequest',
+    //         'Accept': 'application/xml, text/xml, */*; q=0.01',
+    //         // 'Accept': '*/*',
+    //         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101 Goanna/6.0 Firefox/102.0 Basilisk/20230126',
+    //         'Referer': 'https://aurion.junia.com/faces/Planning.xhtml',
+    //         'Origin': 'https://aurion.junia.com',
+    //         'Accept-Encoding': 'gzip, deflate',
+    //     },
+    //     body: 'javax.faces.partial.ajax=true' +
+    //         '&javax.faces.source=form:j_idt117' +
+    //         '&javax.faces.partial.execute=form:j_idt117' +
+    //         '&javax.faces.partial.render=form:j_idt117' +
+    //         '&form:j_idt117=form:j_idt117' +
+    //         '&form:j_idt117_start=' + dimanchePrecedent.getTime() +
+    //         '&form:j_idt117_end=' + dateFin.getTime() +
+    //         '&form=form' +
+    //         '&form:largeurDivCenter=' +
+    //         '&form:idInit=webscolaapp.Planning_31062438843074729' +
+    //         '&form:date_input=' + dimanchePrecedent.toLocaleDateString('fr-FR', options) +
+    //         '&form:week=' + nombreSemaines + '-' + dimanchePrecedent.getFullYear() +
+    //         '&form:j_idt117_view=agendaWeek' +
+    //         '&form:offsetFuseauNavigateur=-3600000' +
+    //         '&form:onglets_activeIndex=0&' +
+    //         'form:onglets_scrollState=0' +
+    //         '&form:j_idt237_focus=' +
+    //         '&form:j_idt237_input=46623' +
+    //         '&javax.faces.ViewState=' + viewState,
+    // }).text();
+    //
+    // console.log('ongoingRequestPromise', ongoingRequestPromise);
 
-    const buffer = Buffer.concat(chunks, length);
-    const data = buffer.toString('utf-8');
-    console.log(data)
-    return data;
+    // const pipeline = promisify(stream.pipeline);
+    // const downloadStream = got.stream.post('https://aurion.junia.com/faces/Planning.xhtml', {
+    //         headers: {
+    //             'Cookie': 'JSESSIONID=' + jsessionid,
+    //             'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+    //             'Connection': 'close',
+    //             'Faces-Request': 'partial/ajax',
+    //             'X-Requested-With': 'XMLHttpRequest',
+    //             'Accept': 'application/xml, text/xml, */*; q=0.01',
+    //             // 'Accept': '*/*',
+    //             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101 Goanna/6.0 Firefox/102.0 Basilisk/20230126',
+    //             'Referer': 'https://aurion.junia.com/faces/Planning.xhtml',
+    //             'Origin': 'https://aurion.junia.com',
+    //             'Accept-Encoding': 'gzip, deflate',
+    //         },
+    //         body: 'javax.faces.partial.ajax=true' +
+    //             '&javax.faces.source=form:j_idt117' +
+    //             '&javax.faces.partial.execute=form:j_idt117' +
+    //             '&javax.faces.partial.render=form:j_idt117' +
+    //             '&form:j_idt117=form:j_idt117' +
+    //             '&form:j_idt117_start=' + dimanchePrecedent.getTime() +
+    //             '&form:j_idt117_end=' + dateFin.getTime() +
+    //             '&form=form' +
+    //             '&form:largeurDivCenter=' +
+    //             '&form:idInit=webscolaapp.Planning_31062438843074729' +
+    //             '&form:date_input=' + dimanchePrecedent.toLocaleDateString('fr-FR', options) +
+    //             '&form:week=' + nombreSemaines + '-' + dimanchePrecedent.getFullYear() +
+    //             '&form:j_idt117_view=agendaWeek' +
+    //             '&form:offsetFuseauNavigateur=-3600000' +
+    //             '&form:onglets_activeIndex=0&' +
+    //             'form:onglets_scrollState=0' +
+    //             '&form:j_idt237_focus=' +
+    //             '&form:j_idt237_input=46623' +
+    //             '&javax.faces.ViewState=' + viewState,
+    //     });
+    // const fileStream = fs.createWriteStream('res.xml');
+    //
+    // await pipeline(downloadStream, fileStream);
 
+    // await pipeline(
+    //     fs.createReadStream('res.xml'),
+    //     got.stream.post('https://aurion.junia.com/faces/Planning.xhtml', {
+    //             headers: {
+    //                 'Cookie': 'JSESSIONID=' + jsessionid,
+    //                 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+    //                 'Connection': 'close',
+    //                 'Faces-Request': 'partial/ajax',
+    //                 'X-Requested-With': 'XMLHttpRequest',
+    //                 'Accept': 'application/xml, text/xml, */*; q=0.01',
+    //                 // 'Accept': '*/*',
+    //                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101 Goanna/6.0 Firefox/102.0 Basilisk/20230126',
+    //                 'Referer': 'https://aurion.junia.com/faces/Planning.xhtml',
+    //                 'Origin': 'https://aurion.junia.com',
+    //                 'Accept-Encoding': 'gzip, deflate',
+    //             },
+    //             body: 'javax.faces.partial.ajax=true' +
+    //                 '&javax.faces.source=form:j_idt117' +
+    //                 '&javax.faces.partial.execute=form:j_idt117' +
+    //                 '&javax.faces.partial.render=form:j_idt117' +
+    //                 '&form:j_idt117=form:j_idt117' +
+    //                 '&form:j_idt117_start=' + dimanchePrecedent.getTime() +
+    //                 '&form:j_idt117_end=' + dateFin.getTime() +
+    //                 '&form=form' +
+    //                 '&form:largeurDivCenter=' +
+    //                 '&form:idInit=webscolaapp.Planning_31062438843074729' +
+    //                 '&form:date_input=' + dimanchePrecedent.toLocaleDateString('fr-FR', options) +
+    //                 '&form:week=' + nombreSemaines + '-' + dimanchePrecedent.getFullYear() +
+    //                 '&form:j_idt117_view=agendaWeek' +
+    //                 '&form:offsetFuseauNavigateur=-3600000' +
+    //                 '&form:onglets_activeIndex=0&' +
+    //                 'form:onglets_scrollState=0' +
+    //                 '&form:j_idt237_focus=' +
+    //                 '&form:j_idt237_input=46623' +
+    //                 '&javax.faces.ViewState=' + viewState,
+    //         }),
+    //     new stream.PassThrough()
+    // )
 
 
     // let response = await fetch('https://aurion.junia.com/faces/Planning.xhtml', {
