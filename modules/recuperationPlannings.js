@@ -1,3 +1,4 @@
+import { log } from "console";
 import fs from "fs";
 // import StockageDonneesEventModel from "./stockageDonneesEventModel.js";
 
@@ -14,8 +15,7 @@ export async function recupPlanning ({page, data}) {
     const password = data.password;
     const res = data.res;
 
-    const nombreDeSemaineARecuperer = 2;        // nombre de semaines pour lesquelles on souhaite récupérer le planning
-
+    const nombreDeSemaineARecuperer = 4;        // nombre de semaines pour lesquelles on souhaite récupérer le planning
     await page.setExtraHTTPHeaders({            // correction de la langue des requêtes
         'Accept-Language': 'fr'                 // (les navigateurs linux serveurs sont par défaut configurés en anglais,
     });                                         // or la version anglaise d'Aurion n'affiche pas les numéros de salle 🙃)
@@ -25,7 +25,6 @@ export async function recupPlanning ({page, data}) {
         deviceScaleFactor: 1,
     })
     await page.goto('https://aurion.junia.com/faces/Login.xhtml');  // déplacement sur la page de Login d'Aurion
-
     // remplissage du formulaire de connexion
     await page.type('#username', username);
     await page.type('#password', decodeURI(password));
@@ -37,7 +36,6 @@ export async function recupPlanning ({page, data}) {
         res.status(401).send('Mauvais mot de passe');
         return;
     }
-
     // bouton Mon Planning, premier élément possédant la dépendance li>a>span
     // permet de se déplacer sur la page des plannings
     const spans = await page.$$('li>a>span');
@@ -91,9 +89,12 @@ export async function recupPlanning ({page, data}) {
     for (let semaine = 0; semaine < nombreDeSemaineARecuperer; semaine++) {
         // timer sur la page permettant d'attendre la fin de la récupération des données par Aurion
         await new Promise(resolve => setTimeout(resolve, 6000));
+        console.log('semaine ' + semaine);
 
         // on récupère toutes les colonnes de journées
         tabJour = await page.$$('tr>td>div.fc-content-col');
+
+        console.log('nombre de jours : ' + tabJour)
 
         // boucle sur chaque jour de la semaine
         for (let i = 1; i <= tabJour.length; i++) {
@@ -151,6 +152,7 @@ export async function recupPlanning ({page, data}) {
         // récupère le bouton vers la semaine suivante
         btnNextSemaine = await page.$('button>span.ui-icon-circle-triangle-e');
         await btnNextSemaine.click();
+        console.log('semaine suivante');
     }
 
     // on ferme le navigateur
@@ -186,6 +188,7 @@ export async function recupPlanning ({page, data}) {
 
     // on ferme le calendrier
     icsMSG += "END:VCALENDAR";
+    console.log("fini !");
 
     // si l'on permet une réponse express
     if (res !== undefined) {
