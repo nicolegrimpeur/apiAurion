@@ -18,11 +18,14 @@ const cluster = Cluster.launch({
     concurrency: Cluster.CONCURRENCY_CONTEXT,
     maxConcurrency: 5,
     puppeteerOptions: {
-        args: ['--no-sandbox', '--disable-setuid-sandbox'],
-        headless: 'new',
-        timeout: 0,
+        // args: ['--no-sandbox', '--disable-setuid-sandbox'],
+        // ignoreDefaultArgs: ['--disable-extensions'],
+        headless: 'false',
+        executablePath: 'C:/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe',
+        // timeout: 0,
         // slowMo: 100,
     }, // arguments puppeteer browser
+    // monitor: true, // affichage des logs
 }); // lancement du navigateur Headless
 
 /**
@@ -30,6 +33,7 @@ const cluster = Cluster.launch({
  * @example localhost:1080/aurion?user=email&mdp=monMdp
  */
 appHTTP.get('/isen/aurion', async function (req, res) {
+    console.log("requête reçue");
     // on ajoute à la file d'attente la récupération du planning
     await (await cluster).queue({
         username: req.query.user,
