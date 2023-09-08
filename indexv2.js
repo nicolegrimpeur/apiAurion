@@ -1,5 +1,9 @@
-import { text } from 'express';
 import puppeteer from 'puppeteer';
+import dotenv from 'dotenv';
+
+dotenv.config();
+const username = process.env.USER;
+const password = process.env.PASSWORD;
 
 function getDateLundi(numeroSemaine, annee) {
     let date = new Date(annee, 0, 1);
@@ -17,9 +21,6 @@ const browser = await puppeteer.launch({
 });
 const page = await browser.newPage();
 
-
-const username = 'nicolas.barrat@student.junia.com';
-const password = '/ZTcI3IL';
 
 const nombreDeSemaineARecuperer = 4;        // nombre de semaines pour lesquelles on souhaite récupérer le planning
 await page.setExtraHTTPHeaders({            // correction de la langue des requêtes
@@ -90,61 +91,83 @@ await new Promise(resolve => setTimeout(resolve, 7000));
 button = await page.$('.fc-right>button.fc-month-button');
 await button.click();
 
-await new Promise(resolve => setTimeout(resolve, 7000));
-
-const tabSemaines = await page.$$('div.fc-content-skeleton')
-console.log(tabSemaines.length);
-
-let tableHead;
-let tableBody;
-let numeroSemaine;
-let nombreDeJours;
-let td;
-let tr;
-let tabJours;
-let maxCours;
-let rowspan;
-let coursSemaine = [];
-let dateSemaine;
-let cours;
-let coursText;
-
-
-for (let semaine = 0; semaine < tabSemaines.length; semaine++) {
-    tableHead = await tabSemaines[semaine].$('thead');
-    tableBody = await tabSemaines[semaine].$('tbody');
-
-    numeroSemaine = await tableHead.$('.fc-week-number>span');
-    numeroSemaine = await page.evaluate(el => el.textContent, numeroSemaine);
-
-    // nombre de colonnes dans le tableau moins la colonne des numéros de semaine
-    tr = await tableBody.$$('tr');
-    td = await tr[0].$$('td');
-    
-    nombreDeJours = td.length - 1;
-
-    maxCours = 1;
-    for (let jour = 1; jour <= nombreDeJours; jour++) {
-        rowspan = await page.evaluate(el => el.getAttribute('rowspan'), td[jour]);
-        if (rowspan > maxCours) {
-            maxCours = rowspan;
+let res = await new Promise(resolve => {
+    page.on('response', async response => {
+        console.log(response.status() + ' ' + response.url());
+        // afficher le type de réponse
+        console.log(response.headers()['content-type']);
+        if (response.headers()['content-type'] === 'text/xml;charset=UTF-8') {
+            const res = await response.text();
+            resolve(res);
+        } else {
+            resolve(undefined);
         }
-    }
 
-    dateSemaine = getDateLundi(numeroSemaine, new Date().getFullYear());
+    });
+});
 
-    for (let trJournees = 0; trJournees < tr.length; trJournees++) {
-        td = await tr[trJournees].$$('td');
-        for (let jour = 0; jour <= nombreDeJours; jour++) {
-            cours = td[jour].$('div.fc-content-col');
-            coursText = await page.evaluate(el => el.textContent, cours);
-            console.log("cours : " + coursText);
-            // tabJours = await tableBody.$$('tr>td:nth-child(' + jour + ')>div.fc-content-col');
-            // console.log(tabJours.length);
-        }
-    }
-
+if (res === undefined) {
+    throw new Error('Erreur lors de la récupération du planning');
 }
+console.log(res);
+
+// await new Promise(resolve => setTimeout(resolve, 7000));
+
+
+
+// const tabSemaines = await page.$$('div.fc-content-skeleton');
+
+// let tableHead;
+// let tableBody;
+// let numeroSemaine;
+// let nombreDeJours;
+// let td;
+// let tr;
+// let tabJours;
+// let maxCours;
+// let rowspan;
+// let coursSemaine = [];
+// let dateSemaine;
+// let cours;
+// let coursText;
+
+// for (let semaine = 0; semaine < tabSemaines.length; semaine++) {
+//     tableHead = await tabSemaines[semaine].$('thead');
+//     tableBody = await tabSemaines[semaine].$('tbody');
+
+//     numeroSemaine = await tableHead.$('.fc-week-number>span');
+//     numeroSemaine = await page.evaluate(el => el.textContent, numeroSemaine);
+
+//     // nombre de colonnes dans le tableau moins la colonne des numéros de semaine
+//     tr = await tableBody.$$('tr');
+//     td = await tr[0].$$('td');
+    
+//     nombreDeJours = td.length - 1;
+
+//     maxCours = 1;
+//     for (let jour = 1; jour <= nombreDeJours; jour++) {
+//         rowspan = await page.evaluate(el => el.getAttribute('rowspan'), td[jour]);
+//         if (rowspan > maxCours) {
+//             maxCours = rowspan;
+//         }
+//     }
+
+//     dateSemaine = getDateLundi(numeroSemaine, new Date().getFullYear());
+
+//     for (let trJournees = 0; trJournees < tr.length; trJournees++) {
+//         td = await tr[trJournees].$$('td');
+//         for (let jour = 0; jour <= nombreDeJours; jour++) {
+//             // on récupère le cours du jour sur cette ligne
+//             // faudrait vérifier que y a bien un cours quand même
+//             cours = td[jour].$('div.fc-content-col');
+//             coursText = await page.evaluate(el => el.textContent, cours);
+//             console.log("cours : " + coursText);
+//             // tabJours = await tableBody.$$('tr>td:nth-child(' + jour + ')>div.fc-content-col');
+//             // console.log(tabJours.length);
+//         }
+//     }
+
+// }
 
 /**
  * Permet de stocker tous les événements formatés
