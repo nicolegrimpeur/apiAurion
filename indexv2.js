@@ -1,5 +1,6 @@
 import puppeteer from 'puppeteer';
 import dotenv from 'dotenv';
+import convert from 'xml-js';
 
 dotenv.config();
 const username = process.env.USER;
@@ -109,7 +110,12 @@ let res = await new Promise(resolve => {
 if (res === undefined) {
     throw new Error('Erreur lors de la récupération du planning');
 }
-console.log(res);
+
+let resJson = JSON.parse(convert.xml2json(res, {compact: true, spaces: 4}));
+
+let cours = resJson['partial-response']['changes']['update'][1]['_cdata'];
+console.log(cours);
+
 
 // await new Promise(resolve => setTimeout(resolve, 7000));
 
