@@ -21,7 +21,7 @@ const cluster = Cluster.launch({
         // args: ['--no-sandbox', '--disable-setuid-sandbox'],
         // ignoreDefaultArgs: ['--disable-extensions'],
         headless: 'false',
-        executablePath: 'C:/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe',
+        // executablePath: 'C:/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe',
         // timeout: 0,
         // slowMo: 100,
     }, // arguments puppeteer browser

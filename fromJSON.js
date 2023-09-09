@@ -14,7 +14,6 @@ const formatPlannings = [];
 
 for (let i = 0; i < 2; i++) {
     for (let cours of tabCours) {
-        ///////// tester si l'id est pas déjà dans formatPlannings
         if (formatPlannings.findIndex((p) => p.id === cours['id']) === -1) {
             id = cours['id'];
             ecole = cours['title'].match(/(ISEN)|(HEI)|(ISA)/g);
