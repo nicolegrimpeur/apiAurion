@@ -1,6 +1,6 @@
 {
   "name": "apiaurion",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Api permettant de récupérer et de convertir le planning Aurion au format ICS pour être ajouté à un calendrier personnel",
   "main": "index.js",
   "scripts": {

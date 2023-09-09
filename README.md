@@ -65,4 +65,4 @@ Petit lien pour me supporter dans ce type de projet, merci d'avance à ceux qui 
 
 ## Disclaimer <a id="Disclaimer"></a>
 
-Un script comme celui-ci ne remplace pas votre emploi du temps Aurion et n'est en rien officiel, à prendre avec des pincettes donc
+Un script comme celui-ci ne remplace pas votre emploi du temps Aurion et n'est en rien officiel, à prendre avec des pincettes donc.
