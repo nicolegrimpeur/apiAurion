@@ -51,11 +51,7 @@ export async function recupPlanning ({page, data}) {
     await page.waitForNavigation();
 
     // on attend que la page soit chargée
-    await new Promise(resolve => {
-        page.on('response', async response => {
-            resolve(undefined);
-        });
-    });
+    await new Promise(resolve => setTimeout(resolve, 8000));
     
     
     ////////////// initialisation des variables utilisés dans les boucles
