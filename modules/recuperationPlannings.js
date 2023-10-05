@@ -34,8 +34,8 @@ export async function recupPlanning ({page, data}) {
     await page.waitForNavigation();             // on attend le changement de page
     
     if (page.url() === 'https://aurion.junia.com/login') {
-        // res.status(401).send('Mauvais mot de passe');
-        // return;
+        console.log("Mauvais mot de passe");
+        response.status(401).send('Mauvais mot de passe');
         throw new Error('Mauvais mot de passe');
     }
     // bouton Mon Planning, premier élément possédant la dépendance li>a>span
@@ -84,7 +84,7 @@ export async function recupPlanning ({page, data}) {
         });
     
         if (result === undefined) {
-            res.status(500).send('Erreur lors de la récupération du planning');
+            response.status(500).send('Erreur lors de la récupération du planning');
             return;
         }
     
@@ -163,7 +163,7 @@ export async function recupPlanning ({page, data}) {
     
     // on ferme le calendrier
     icsMSG += "END:VCALENDAR";
-    console.log("fini !");
+    // console.log("fini !");
     
     // si l'on permet une réponse express
     if (response !== undefined) {

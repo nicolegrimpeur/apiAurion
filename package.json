@@ -18,7 +18,7 @@
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "fs": "^0.0.1-security",
-    "puppeteer": "^21.1.1",
+    "puppeteer": "^21.3.7",
     "puppeteer-cluster": "^0.23.0",
     "xml-js": "^1.6.11"
   }
